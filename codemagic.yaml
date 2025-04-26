@@ -27,14 +27,3 @@ workflows:
     artifacts:
       - build/ios/iphoneos/*.app # Adjust path if necessary based on your build output
       # - build/ios/ipa/*.ipa # Uncomment if building an IPA with code signing
-
-    publishing:
-      # Add publishing steps if needed (e.g., App Store Connect, Firebase App Distribution)
-      # email:
-      #   recipients:
-      #     - user@example.com
-      #   notify:
-      #     success: true
-      #     failure: false
-      # app_store_connect:
-      #   ... # Configuration for App Store Connect
