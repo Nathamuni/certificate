@@ -20,7 +20,7 @@ workflows:
       - name: Build iOS app
         script: |
           cd certificate_app
-          flutter build ios --release --no-codesigning
+          flutter build ios --release
           # If you have code signing set up, you might use:
           # flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
 
