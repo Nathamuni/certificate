@@ -1,0 +1,40 @@
+# codemagic.yaml
+workflows:
+  ios-app-workflow: # Give your workflow a name
+    name: iOS App Workflow # Workflow name shown in Codemagic UI
+    instance_type: mac_mini_m1 # Or mac_pro
+    max_build_duration: 60 # In minutes
+    environment:
+      flutter: stable # Or specify a version e.g., 3.10.0
+      xcode: latest # Or specify a version e.g., 14.3.1
+      cocoapods: default
+      # Add other environment variables if needed
+      # vars:
+      #   MY_VARIABLE: value
+
+    scripts:
+      - name: Install Flutter dependencies
+        script: |
+          flutter packages pub get
+      - name: Build iOS app
+        script: |
+          # Ensure you are in the correct directory if codemagic.yaml is not at the root
+          # cd certificate_app # Uncomment if needed, but likely not if yaml is in certificate_app/
+          flutter build ios --release --no-codesigning
+          # If you have code signing set up, you might use:
+          # flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+
+    artifacts:
+      - build/ios/iphoneos/*.app # Adjust path if necessary based on your build output
+      # - build/ios/ipa/*.ipa # Uncomment if building an IPA with code signing
+
+    publishing:
+      # Add publishing steps if needed (e.g., App Store Connect, Firebase App Distribution)
+      # email:
+      #   recipients:
+      #     - user@example.com
+      #   notify:
+      #     success: true
+      #     failure: false
+      # app_store_connect:
+      #   ... # Configuration for App Store Connect
