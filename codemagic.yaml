@@ -15,11 +15,11 @@ workflows:
     scripts:
       - name: Install Flutter dependencies
         script: |
+          cd certificate_app
           flutter packages pub get
       - name: Build iOS app
         script: |
-          # Ensure you are in the correct directory if codemagic.yaml is not at the root
-          # cd certificate_app # Uncomment if needed, but likely not if yaml is in certificate_app/
+          cd certificate_app
           flutter build ios --release --no-codesigning
           # If you have code signing set up, you might use:
           # flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
