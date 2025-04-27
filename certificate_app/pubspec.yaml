@@ -84,6 +84,7 @@ flutter:
     - assets/images/Thirumankaappu - Jeeyar matam_20250402_134630_0000.png
     - assets/images/sign.png
     - assets/images/PN Receipt logo.png # Ensure the new logo is listed here too
+    - assets/images/ # Include the images directory
     - assets/fonts/ # Include the fonts directory
   #   - images/a_dot_burr.jpeg
   #   - images/a_dot_ham.jpeg

@@ -65,6 +65,8 @@ class _HomeScreenState extends State<HomeScreen> {
   StreamSubscription<AuthState>?
   _authStateSubscription; // Add auth listener subscription
   RealtimeChannel? _profileChannel; // Add profile listener channel
+  String? _qrImagePath; // State for QR code image path
+  String? _upiId; // State for UPI ID text
 
   final List<String> _trustOptions = [
     "PARAMANADI TRUST",
@@ -1489,6 +1491,39 @@ class _HomeScreenState extends State<HomeScreen> {
   }
   // --- End Edit Mode Functions ---
 
+  // --- Function to Update QR Code Visibility ---
+  void _updateQrCodeVisibility() {
+    // Check if mode is UPI and a trust is selected
+    if (_selectedModeOfTransfer == 'UPI' && _selectedTrust != null) {
+      if (_selectedTrust == "NOOLAATTI PALA KALAI ORPPU MAIYAM") {
+        // Use setState to update the UI when state changes
+        setState(() {
+          _qrImagePath = 'assets/images/Noolaatti QR code.png';
+          _upiId = 'eazypay.6basfp0upvitc2w@icici';
+        });
+      } else if (_selectedTrust == "PARAMANADI TRUST") {
+        // Use setState to update the UI when state changes
+        setState(() {
+          _qrImagePath = 'assets/images/Paramadi QR code.png';
+          _upiId = 'secretaryparamanadi@IOB';
+        });
+      } else {
+        // If trust is selected but not one of the specified ones, clear QR
+        setState(() {
+          _qrImagePath = null;
+          _upiId = null;
+        });
+      }
+    } else {
+      // If mode is not UPI or no trust is selected, clear QR
+      setState(() {
+        _qrImagePath = null;
+        _upiId = null;
+      });
+    }
+  }
+  // --- End Function to Update QR Code Visibility ---
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -1506,115 +1541,160 @@ class _HomeScreenState extends State<HomeScreen> {
         // ],
       ),
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
+          // Wrap with Column
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                'Menu',
-                style: TextStyle(color: Colors.white, fontSize: 20),
-              ),
-            ),
-            ListTile(
-              leading: const Icon(Icons.home), // Icon for Home
-              title: const Text('Home'),
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-                if (ModalRoute.of(context)?.settings.name != '/') {
-                  Navigator.pushReplacementNamed(context, '/');
-                }
-              },
-            ),
-            // Add View Receipts ListTile here
-            ListTile(
-              leading: const Icon(Icons.receipt_long), // Icon for Receipts
-              title: const Text('View Receipts'),
-              onTap: () {
-                Navigator.pop(context); // Close drawer
-                Navigator.pushNamed(
-                  context,
-                  '/certificates',
-                ); // Navigate to CertificatesPage
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('View Profiles'),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamed(context, '/profiles');
-              },
-            ),
-            // Conditionally add Admin menu item
-            if (_isAdmin)
-              ListTile(
-                leading: const Icon(
-                  Icons.admin_panel_settings,
-                ), // Icon for Admin
-                title: Text(
-                  _pendingApprovalCount > 0
-                      ? 'Approve Users ($_pendingApprovalCount)' // Show count if > 0
-                      : 'Approve Users', // Don't show count if 0
-                  style: TextStyle(
-                    color:
-                        _pendingApprovalCount > 0
-                            ? Colors.red
-                            : null, // Conditional color
-                    fontWeight:
-                        _pendingApprovalCount > 0
-                            ? FontWeight.bold
-                            : FontWeight.normal, // Conditional weight
+            Expanded(
+              // Wrap ListView with Expanded
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  const DrawerHeader(
+                    decoration: BoxDecoration(color: Colors.blue),
+                    child: Text(
+                      'Menu',
+                      style: TextStyle(color: Colors.white, fontSize: 20),
+                    ),
                   ),
+                  ListTile(
+                    leading: const Icon(Icons.home), // Icon for Home
+                    title: const Text('Home'),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                      if (ModalRoute.of(context)?.settings.name != '/') {
+                        Navigator.pushReplacementNamed(context, '/');
+                      }
+                    },
+                  ),
+                  // Add View Receipts ListTile here
+                  ListTile(
+                    leading: const Icon(
+                      Icons.receipt_long,
+                    ), // Icon for Receipts
+                    title: const Text('View Receipts'),
+                    onTap: () {
+                      Navigator.pop(context); // Close drawer
+                      Navigator.pushNamed(
+                        context,
+                        '/certificates',
+                      ); // Navigate to CertificatesPage
+                    },
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.person),
+                    title: const Text('View Profiles'),
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.pushNamed(context, '/profiles');
+                    },
+                  ),
+                  // Conditionally add Admin menu item
+                  if (_isAdmin)
+                    ListTile(
+                      leading: const Icon(
+                        Icons.admin_panel_settings,
+                      ), // Icon for Admin
+                      title: Text(
+                        _pendingApprovalCount > 0
+                            ? 'Approve Users ($_pendingApprovalCount)' // Show count if > 0
+                            : 'Approve Users', // Don't show count if 0
+                        style: TextStyle(
+                          color:
+                              _pendingApprovalCount > 0
+                                  ? Colors.red
+                                  : null, // Conditional color
+                          fontWeight:
+                              _pendingApprovalCount > 0
+                                  ? FontWeight.bold
+                                  : FontWeight.normal, // Conditional weight
+                        ),
+                      ),
+                      onTap: () {
+                        Navigator.pop(context); // Close drawer
+                        Navigator.pushNamed(context, '/approve_users').then((
+                          _,
+                        ) {
+                          // Re-fetch count when returning from approve users screen
+                          _fetchPendingApprovalCount();
+                        }); // Navigate to new screen and refetch on return
+                      },
+                    ),
+                  // Conditionally add View Admins menu item
+                  if (_isAdmin)
+                    ListTile(
+                      leading: const Icon(
+                        Icons.people, // Changed icon to Icons.people
+                      ), // Icon for View Admins
+                      title: const Text('View Admins'),
+                      onTap: () {
+                        Navigator.pop(context); // Close drawer
+                        Navigator.pushNamed(
+                          context,
+                          '/view_admins',
+                        ); // Navigate to the new screen
+                      },
+                    ),
+                  // Add Logout button to drawer
+                  const Divider(),
+                  ListTile(
+                    leading: const Icon(Icons.logout),
+                    title: const Text('Logout'),
+                    onTap: () async {
+                      Navigator.pop(context); // Close drawer first
+                      try {
+                        await Supabase.instance.client.auth.signOut();
+                        if (!mounted) return;
+                        // Navigate to login screen and remove all previous routes
+                        Navigator.of(
+                          context,
+                        ).pushNamedAndRemoveUntil('/login', (route) => false);
+                      } catch (e) {
+                        print('Error signing out: $e');
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Error signing out: $e')),
+                          );
+                        }
+                      }
+                    },
+                  ),
+                  // --- Footer Text ---
+                  // --- End Footer Text ---
+                ],
+              ),
+            ), // End Expanded
+            // --- Footer Text (Moved outside Expanded) ---
+            const Divider(), // Keep the divider above the new text
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 10.0,
+                horizontal: 16.0,
+              ),
+              child: RichText(
+                textAlign: TextAlign.center, // Center the text
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 12.0, // Smaller font size for subtlety
+                    color: Colors.grey[600], // Lighter text color
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(
+                      text: 'Designed and developed by\n',
+                    ), // Add newline for spacing
+                    TextSpan(
+                      text: 'Nathamuni',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500, // Slightly bolder
+                        // Optionally increase font size slightly if needed
+                        // fontSize: 13.0,
+                      ),
+                    ),
+                  ],
                 ),
-                onTap: () {
-                  Navigator.pop(context); // Close drawer
-                  Navigator.pushNamed(context, '/approve_users').then((_) {
-                    // Re-fetch count when returning from approve users screen
-                    _fetchPendingApprovalCount();
-                  }); // Navigate to new screen and refetch on return
-                },
               ),
-            // Conditionally add View Admins menu item
-            if (_isAdmin)
-              ListTile(
-                leading: const Icon(
-                  Icons.people, // Changed icon to Icons.people
-                ), // Icon for View Admins
-                title: const Text('View Admins'),
-                onTap: () {
-                  Navigator.pop(context); // Close drawer
-                  Navigator.pushNamed(
-                    context,
-                    '/view_admins',
-                  ); // Navigate to the new screen
-                },
-              ),
-            // Add Logout button to drawer
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
-              onTap: () async {
-                Navigator.pop(context); // Close drawer first
-                try {
-                  await Supabase.instance.client.auth.signOut();
-                  if (!mounted) return;
-                  // Navigate to login screen and remove all previous routes
-                  Navigator.of(
-                    context,
-                  ).pushNamedAndRemoveUntil('/login', (route) => false);
-                } catch (e) {
-                  print('Error signing out: $e');
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Error signing out: $e')),
-                    );
-                  }
-                }
-              },
             ),
-          ],
+            // --- End Footer Text ---
+          ], // End Column
         ),
       ),
       body: SingleChildScrollView(
@@ -1665,6 +1745,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 onChanged: (newValue) {
                   setState(() {
                     _selectedTrust = newValue;
+                    _updateQrCodeVisibility(); // Update QR on trust change
                   });
                 },
                 validator:
@@ -1895,7 +1976,9 @@ class _HomeScreenState extends State<HomeScreen> {
                     _showChequeField = newValue == 'Cheque';
                     if (!_showChequeField) {
                       _chequeNumberController.clear();
+                      _bankController.clear(); // Also clear bank name
                     }
+                    _updateQrCodeVisibility(); // Update QR on mode change
                   });
                 },
                 validator:
@@ -1907,6 +1990,65 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               const SizedBox(height: 16),
 
+              // --- Conditionally Display QR Code and UPI ID ---
+              if (_qrImagePath != null && _upiId != null)
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 16.0,
+                    bottom: 8.0,
+                  ), // Add some spacing
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      const Text(
+                        'Scan And Pay',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Image.asset(
+                        _qrImagePath!,
+                        height: 150, // Adjust height as needed
+                        errorBuilder: (context, error, stackTrace) {
+                          print("Error loading QR image $_qrImagePath: $error");
+                          return const Text('Error loading QR code');
+                        },
+                      ),
+                      const SizedBox(height: 8),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            // Wrap Text with Flexible to prevent overflow
+                            child: Text(
+                              _upiId!,
+                              style: const TextStyle(fontSize: 14),
+                              overflow:
+                                  TextOverflow.ellipsis, // Handle long IDs
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.copy, size: 18),
+                            tooltip: 'Copy UPI ID',
+                            onPressed: () {
+                              Clipboard.setData(ClipboardData(text: _upiId!));
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text('UPI ID copied to clipboard'),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8), // Add spacing after UPI ID
+                    ],
+                  ),
+                ),
+
+              // --- End QR Code Display ---
               if (_showChequeField)
                 TextFormField(
                   controller: _chequeNumberController,

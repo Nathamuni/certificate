@@ -20,10 +20,16 @@ workflows:
       - name: Build iOS app
         script: |
           cd certificate_app
-          flutter build ios --release
-          # If you have code signing set up, you might use:
-          # flutter build ipa --release --export-options-plist=ios/ExportOptions.plist
+          # Build IPA for App Store Connect (TestFlight) distribution.
+          # Requires App Store Distribution certificate and provisioning profile configured in Codemagic.
+          # See: https://docs.codemagic.io/code-signing-yaml/ios-code-signing/
+          # This IPA will be uploaded to App Store Connect (manually or via Codemagic publishing steps)
+          # and distributed to testers via the TestFlight app.
+          flutter build ipa --release 
+          # You might need an ExportOptions.plist for App Store distribution:
+          # flutter build ipa --release --export-options-plist=ios/ExportOptionsAppStore.plist 
 
     artifacts:
-      - build/ios/iphoneos/*.app # Adjust path if necessary based on your build output
-      # - build/ios/ipa/*.ipa # Uncomment if building an IPA with code signing
+      # Path for IPA build artifacts
+      - build/ios/ipa/*.ipa
+      - $HOME/Library/Developer/Xcode/DerivedData/**/Build/**/*.dSYM # Include dSYM symbols for crash reporting

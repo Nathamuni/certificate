@@ -98,100 +98,138 @@ class _SignUpScreenState extends State<SignUpScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Sign Up')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                // Add the image here
-                Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 24.0,
-                  ), // Add some space below the image
-                  child: Image.asset(
-                    'assets/images/Thirumankaappu - Jeeyar matam_20250402_134630_0000.png',
-                    height: 80, // Adjust height as needed
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      // Add the image here
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: 24.0,
+                        ), // Add some space below the image
+                        child: Image.asset(
+                          'assets/images/Thirumankaappu - Jeeyar matam_20250402_134630_0000.png',
+                          height: 80, // Adjust height as needed
+                        ),
+                      ),
+                      TextFormField(
+                        // Added Email Field
+                        controller: _emailController,
+                        decoration: const InputDecoration(labelText: 'Email'),
+                        keyboardType: TextInputType.emailAddress,
+                        validator: (value) {
+                          if (value == null ||
+                              value.isEmpty ||
+                              !value.contains('@')) {
+                            return 'Please enter a valid email address';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16), // Added spacing
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a username';
+                          }
+                          // Add more username validation if needed (e.g., length, characters)
+                          // Check if username already exists (requires a Supabase query)
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter a password';
+                          }
+                          if (value.length < 6) {
+                            // Example: Basic password length check
+                            return 'Password must be at least 6 characters';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _confirmPasswordController,
+                        decoration: const InputDecoration(
+                          labelText: 'Confirm Password',
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please confirm your password';
+                          }
+                          if (value != _passwordController.text) {
+                            return 'Passwords do not match';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                            onPressed: _signUp,
+                            child: const Text('Sign Up'),
+                          ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context); // Go back to Login Screen
+                        },
+                        child: const Text('Already have an account? Login'),
+                      ),
+                    ],
                   ),
                 ),
-                TextFormField(
-                  // Added Email Field
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'Email'),
-                  keyboardType: TextInputType.emailAddress,
-                  validator: (value) {
-                    if (value == null ||
-                        value.isEmpty ||
-                        !value.contains('@')) {
-                      return 'Please enter a valid email address';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16), // Added spacing
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a username';
-                    }
-                    // Add more username validation if needed (e.g., length, characters)
-                    // Check if username already exists (requires a Supabase query)
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter a password';
-                    }
-                    if (value.length < 6) {
-                      // Example: Basic password length check
-                      return 'Password must be at least 6 characters';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmPasswordController,
-                  decoration: const InputDecoration(
-                    labelText: 'Confirm Password',
-                  ),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please confirm your password';
-                    }
-                    if (value != _passwordController.text) {
-                      return 'Passwords do not match';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                      onPressed: _signUp,
-                      child: const Text('Sign Up'),
-                    ),
-                TextButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Go back to Login Screen
-                  },
-                  child: const Text('Already have an account? Login'),
-                ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 10.0,
+                horizontal: 16.0,
+              ),
+              child: RichText(
+                textAlign: TextAlign.center, // Center the text
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 12.0, // Smaller font size for subtlety
+                    color: Colors.grey[600], // Lighter text color
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(
+                      text: 'Designed and developed by\n',
+                    ), // Add newline for spacing
+                    TextSpan(
+                      text: 'Nathamuni',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500, // Slightly bolder
+                        // Optionally increase font size slightly if needed
+                        // fontSize: 13.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );

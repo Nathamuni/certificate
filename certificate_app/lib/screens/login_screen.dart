@@ -200,73 +200,111 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Login')),
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: <Widget>[
-                // Add the image here
-                Padding(
-                  padding: const EdgeInsets.only(
-                    bottom: 24.0,
-                  ), // Add some space below the image
-                  child: Image.asset(
-                    'assets/images/Thirumankaappu - Jeeyar matam_20250402_134630_0000.png',
-                    height: 80, // Adjust height as needed
+      body: SafeArea(
+        child: Column(
+          children: [
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: <Widget>[
+                      // Add the image here
+                      Padding(
+                        padding: const EdgeInsets.only(
+                          bottom: 24.0,
+                        ), // Add some space below the image
+                        child: Image.asset(
+                          'assets/images/Thirumankaappu - Jeeyar matam_20250402_134630_0000.png',
+                          height: 80, // Adjust height as needed
+                        ),
+                      ),
+                      TextFormField(
+                        controller: _usernameController,
+                        decoration: const InputDecoration(
+                          labelText: 'Username',
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your username';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        decoration: const InputDecoration(
+                          labelText: 'Password',
+                        ),
+                        obscureText: true,
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Please enter your password';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 24),
+                      _isLoading
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                            onPressed: _signIn,
+                            child: const Text('Login'),
+                          ),
+                      TextButton(
+                        onPressed: () {
+                          // Navigate to Sign Up Screen
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const SignUpScreen(),
+                            ),
+                          );
+                        },
+                        child: const Text('Don\'t have an account? Sign Up'),
+                      ),
+                      // Add Forgot Password Button
+                      TextButton(
+                        onPressed: _showForgotPasswordDialog,
+                        child: const Text('Forgot Password?'),
+                      ),
+                    ],
                   ),
                 ),
-                TextFormField(
-                  controller: _usernameController,
-                  decoration: const InputDecoration(labelText: 'Username'),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your username';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Password'),
-                  obscureText: true,
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Please enter your password';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                _isLoading
-                    ? const CircularProgressIndicator()
-                    : ElevatedButton(
-                      onPressed: _signIn,
-                      child: const Text('Login'),
-                    ),
-                TextButton(
-                  onPressed: () {
-                    // Navigate to Sign Up Screen
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const SignUpScreen(),
-                      ),
-                    );
-                  },
-                  child: const Text('Don\'t have an account? Sign Up'),
-                ),
-                // Add Forgot Password Button
-                TextButton(
-                  onPressed: _showForgotPasswordDialog,
-                  child: const Text('Forgot Password?'),
-                ),
-              ],
+              ),
             ),
-          ),
+            Padding(
+              padding: const EdgeInsets.symmetric(
+                vertical: 10.0,
+                horizontal: 16.0,
+              ),
+              child: RichText(
+                textAlign: TextAlign.center, // Center the text
+                text: TextSpan(
+                  style: TextStyle(
+                    fontSize: 12.0, // Smaller font size for subtlety
+                    color: Colors.grey[600], // Lighter text color
+                  ),
+                  children: const <TextSpan>[
+                    TextSpan(
+                      text: 'Designed and developed by\n',
+                    ), // Add newline for spacing
+                    TextSpan(
+                      text: 'Nathamuni',
+                      style: TextStyle(
+                        fontWeight: FontWeight.w500, // Slightly bolder
+                        // Optionally increase font size slightly if needed
+                        // fontSize: 13.0,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
         ),
       ),
     );
