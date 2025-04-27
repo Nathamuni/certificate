@@ -1047,41 +1047,16 @@ class _HomeScreenState extends State<HomeScreen> {
           "Financial year or bill number is missing before PDF upload.",
         );
       }
-      final pdfPath =
-          'certificates/$financialYear/${generatedBillNumber.replaceAll('/', '_')}.pdf';
-      print('Uploading PDF to: $pdfPath');
-      try {
-        await Supabase.instance.client.storage
-            .from('certificates')
-            .uploadBinary(
-              // Use uploadBinary for Uint8List
-              pdfPath,
-              pdfBytes,
-              fileOptions: const FileOptions(
-                upsert: true, // Important for updates
-                contentType: 'application/pdf',
-              ),
-            );
-        print('PDF upload successful.');
-      } catch (e) {
-        print('!!! Supabase Storage Upload Error: $e');
-        // Decide if this is critical. Maybe the DB entry succeeded but upload failed.
-        // For now, rethrow to show error to user.
-        throw Exception(
-          'Database record saved, but failed to upload PDF: ${e.toString()}',
-        );
-      }
+      // Removed PDF upload to Supabase storage to avoid storing PDFs in bucket
+      print('Skipping PDF upload to Supabase storage as per new requirement.');
 
       // 4. Get Signed URL (for viewing only, DO NOT update the table)
       String? signedUrl;
       String? urlError;
       try {
-        signedUrl = await Supabase.instance.client.storage
-            .from('certificates')
-            .createSignedUrl(
-              pdfPath,
-              60 * 60 * 24 * 7, // 7 day validity for viewing link
-            );
+        // Removed signed URL generation since PDFs are not stored in Supabase storage
+        signedUrl = null;
+        urlError = null;
       } on StorageException catch (e) {
         print('Error creating signed URL: ${e.message}');
         urlError = e.message;
@@ -1096,14 +1071,8 @@ class _HomeScreenState extends State<HomeScreen> {
           _certificateUrl = signedUrl;
         });
       } else if (mounted) {
-        // Show error only if URL generation failed, not if component unmounted
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Error getting PDF URL for viewing: ${urlError ?? 'Unknown error'}',
-            ),
-          ),
-        );
+        // Removed error snackbar for signed URL generation failure since PDFs are local now
+        // Do nothing here to avoid showing error
       }
 
       // Store the ID for potential future edits *after* successful generation/update
@@ -2189,6 +2158,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: Colors.green[700],
                           ),
                         ),
+                        const SizedBox(width: 10),
                         ElevatedButton.icon(
                           icon: const Icon(Icons.share, color: Colors.white),
                           label: const Text(
@@ -2200,22 +2170,76 @@ class _HomeScreenState extends State<HomeScreen> {
                             backgroundColor: Colors.orange[700],
                           ),
                         ),
-                        if (_certificateUrl != null &&
-                            _certificateUrl!.isNotEmpty)
-                          ElevatedButton.icon(
-                            icon: const Icon(
-                              Icons.visibility,
-                              color: Colors.white,
-                            ),
-                            label: const Text(
-                              'View',
-                              style: TextStyle(color: Colors.white),
-                            ),
-                            onPressed: _viewPdf,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.purple[700],
-                            ),
+                        const SizedBox(width: 10),
+                        ElevatedButton.icon(
+                          icon: const Icon(
+                            Icons.visibility,
+                            color: Colors.white,
                           ),
+                          label: const Text(
+                            'View',
+                            style: TextStyle(color: Colors.white),
+                          ),
+                          onPressed: () async {
+                            // Generate the PDF on demand using current form data
+                            final dataForPdf = {
+                              'trust': _selectedTrust ?? '',
+                              'name': _nameController.text.trim(),
+                              'address': _addressController.text.trim(),
+                              'mobile_number':
+                                  _phoneNumber?.completeNumber ?? '',
+                              'email':
+                                  _emailController.text.trim().isEmpty
+                                      ? null
+                                      : _emailController.text.trim(),
+                              'offering_type': _selectedOfferingType,
+                              'purpose':
+                                  _purposeController.text.trim().isEmpty
+                                      ? null
+                                      : _purposeController.text.trim(),
+                              'amount':
+                                  double.tryParse(
+                                    _amountController.text.trim(),
+                                  ) ??
+                                  0.0,
+                              'transfer_mode': _selectedModeOfTransfer ?? '',
+                              'cheque_number':
+                                  _showChequeField
+                                      ? _chequeNumberController.text.trim()
+                                      : null,
+                              'bank':
+                                  _showChequeField
+                                      ? _bankController.text.trim()
+                                      : null,
+                              'bill_number': _lastGeneratedBillNumber ?? '',
+                              'date': DateFormat(
+                                'dd-MM-yyyy',
+                              ).format(DateTime.now()),
+                              'other_remarks':
+                                  _otherRemarksController.text.trim().isEmpty
+                                      ? null
+                                      : _otherRemarksController.text.trim(),
+                            };
+                            try {
+                              final pdfBytes = await generateCertificatePdf(
+                                dataForPdf,
+                              );
+                              _generatedPdfBytes = pdfBytes;
+                              await _viewPdf();
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text('Error generating PDF: $e'),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.purple[700],
+                          ),
+                        ),
                       ],
                     ),
                   ),
